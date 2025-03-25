@@ -1,101 +1,200 @@
-import Image from "next/image";
+"use client";
+import { useRef, useState } from "react";
 
-export default function Home() {
+// Mapping ANSI codes to hex colors
+const ansiToHex: Record<string, string> = {
+  "ansi-1": "bold",
+  "ansi-4": "underline",
+  "ansi-30": "#000000", // Black
+  "ansi-31": "#FF0000", // Red
+  "ansi-32": "#00FF00", // Green
+  "ansi-33": "#FFFF00", // Yellow
+  "ansi-34": "#0000FF", // Blue
+  "ansi-35": "#FF00FF", // Magenta
+  "ansi-36": "#00FFFF", // Cyan
+  "ansi-37": "#FFFFFF", // White
+  "ansi-40": "#000000", // BG Black
+  "ansi-41": "#FF0000", // BG Red
+  "ansi-42": "#00FF00", // BG Green
+  "ansi-43": "#FFFF00", // BG Yellow
+  "ansi-44": "#0000FF", // BG Blue
+  "ansi-45": "#FF00FF", // BG Magenta
+  "ansi-46": "#00FFFF", // BG Cyan
+  "ansi-47": "#FFFFFF", // BG White
+};
+
+export default function DiscordTextGenerator() {
+  const textAreaRef = useRef<HTMLDivElement>(null);
+  const [htmlContent, setHtmlContent] = useState(
+    "Welcome to <span class='ansi-33'>Rebane</span>'s <span class='ansi-45'><span class='ansi-37'>Discord</span></span> <span class='ansi-31'>C</span><span class='ansi-32'>o</span><span class='ansi-33'>l</span><span class='ansi-34'>o</span><span class='ansi-35'>r</span><span class='ansi-36'>e</span><span class='ansi-37'>d</span> Text Generator!"
+  );
+  // Function to apply ANSI color classes
+  const applyColorToSelection = (ansiClass: string) => {
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) return;
+
+    const range = selection.getRangeAt(0);
+    if (range.collapsed) return;
+
+    const selectedText = range.toString();
+    if (!selectedText) return;
+
+    // Create a span element with ANSI class and inline color
+    const span = document.createElement("span");
+    span.className = ansiClass;
+    if (ansiClass.startsWith("ansi-1")) {
+      span.style.fontWeight = "bold";
+    } else if (ansiClass.startsWith("ansi-4")) {
+      span.style.textDecoration = "underline";
+    }
+    if (ansiClass.startsWith("ansi-3")) {
+      span.style.color = ansiToHex[ansiClass] || "inherit";
+    } else {
+      span.style.backgroundColor = ansiToHex[ansiClass] || "inherit";
+    }
+
+    span.textContent = selectedText;
+
+    range.deleteContents();
+    range.insertNode(span);
+
+    setHtmlContent(textAreaRef.current?.innerHTML || "");
+  };
+
+  // Convert HTML content to ANSI-formatted Discord text
+  const nodesToANSI = (nodes: NodeListOf<ChildNode>, states: any[]) => {
+    let text = "";
+    for (const node of nodes) {
+      if (node.nodeType === 3) {
+        text += node.textContent;
+        continue;
+      }
+      if (node.nodeName === "BR") {
+        text += "\n";
+        continue;
+      }
+
+      const ansiCode = +(node as HTMLElement).className.split("-")[1];
+      const newState = { ...states.at(-1) };
+
+      if (ansiCode < 30) newState.st = ansiCode;
+      if (ansiCode >= 30 && ansiCode < 40) newState.fg = ansiCode;
+      if (ansiCode >= 40) newState.bg = ansiCode;
+
+      states.push(newState);
+      text += `\x1b[${newState.st};${
+        ansiCode >= 40 ? newState.bg : newState.fg
+      }m`;
+      text += nodesToANSI((node as HTMLElement).childNodes, states);
+      states.pop();
+      text += `\x1b[0m`;
+
+      if (states.at(-1).fg !== 2)
+        text += `\x1b[${states.at(-1).st};${states.at(-1).fg}m`;
+      if (states.at(-1).bg !== 2)
+        text += `\x1b[${states.at(-1).st};${states.at(-1).bg}m`;
+    }
+    return text;
+  };
+
+  // Copy ANSI text to clipboard
+  const copyToClipboard = () => {
+    if (!textAreaRef.current) return;
+    const ansiText =
+      "```ansi\n" +
+      nodesToANSI(textAreaRef.current.childNodes, [{ fg: 2, bg: 2, st: 2 }]) +
+      "\n```";
+    navigator.clipboard.writeText(ansiText);
+    alert("Copied as Discord ANSI text!");
+  };
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+    <div className="p-4">
+      <h1>
+        Rebane &apos;s Discord <span style={{ color: "#5865F2" }}>Colored</span>{" "}
+        Text Generator
+      </h1>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+      <div className="container">
+        <h3>About</h3>
+        <p>This app creates colored Discord messages using ANSI codes.</p>
+        <p>
+          Select text and click a color to apply, then copy it to send in
+          Discord.
+        </p>
+      </div>
+
+      <h2>Create your text</h2>
+      <button onClick={() => setHtmlContent("Type here...")} className="button">
+        Reset All
+      </button>
+      <button
+        onClick={() => applyColorToSelection("ansi-1")}
+        className="button"
+      >
+        Bold
+      </button>
+      <button
+        onClick={() => applyColorToSelection("ansi-4")}
+        className="button"
+      >
+        Underline
+      </button>
+
+      <br />
+      <br />
+      <strong>FG</strong>
+      {Object.keys(ansiToHex)
+        .filter((key) => key.startsWith("ansi-3"))
+        .map((color) => (
+          <button
+            key={color}
+            onClick={() => applyColorToSelection(color)}
+            className="button"
+            style={{ backgroundColor: ansiToHex[color] }}
           >
-            <Image
-              className="dark:invert"
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+            &nbsp;
+          </button>
+        ))}
+
+      <br />
+      <br />
+      <strong>BG</strong>
+      {Object.keys(ansiToHex)
+        .filter((key) => key.startsWith("ansi-4"))
+        .map((color) => (
+          <button
+            key={color}
+            onClick={() => applyColorToSelection(color)}
+            className="button"
+            style={{ backgroundColor: ansiToHex[color] }}
           >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+            &nbsp;
+          </button>
+        ))}
+
+      <br />
+      <br />
+      <div className="flex">
+        <div
+          ref={textAreaRef}
+          contentEditable
+          suppressContentEditableWarning
+          className="w-[300px] min-h-[100px] p-2 border border-gray-300 focus:outline-none"
+          dangerouslySetInnerHTML={{ __html: htmlContent }}
+        />
+      </div>
+
+      <br />
+      <button onClick={copyToClipboard} className="button copy">
+        Copy text as Discord formatted
+      </button>
+
+      <br />
+      <br />
+      <small className="select-none">
+        This is an unofficial tool, not made or endorsed by Discord.
+      </small>
     </div>
   );
 }
