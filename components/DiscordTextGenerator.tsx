@@ -30,7 +30,7 @@ export default function DiscordTextGenerator() {
   const textAreaRef = useRef<HTMLDivElement>(null);
   const clipboard = useClipboard();
   const [htmlContent, setHtmlContent] = useState(
-    "Welcome to <span class='ansi-33'>Rebane</span>'s <span class='ansi-45'><span class='ansi-37'>Discord</span></span> <span class='ansi-31'>C</span><span class='ansi-32'>o</span><span class='ansi-33'>l</span><span class='ansi-34'>o</span><span class='ansi-35'>r</span><span class='ansi-36'>e</span><span class='ansi-37'>d</span> Text Generator!"
+    "Welcome to <span class='ansi-33'></span> <span class='ansi-45'><span class='ansi-37'>Discord</span></span> <span class='ansi-31'>C</span><span class='ansi-32'>o</span><span class='ansi-33'>l</span><span class='ansi-34'>o</span><span class='ansi-35'>r</span><span class='ansi-36'>e</span><span class='ansi-37'>d</span> Text Generator!"
   );
   const applyColorToSelection = (ansiClass: string) => {
     const selection = window.getSelection();
@@ -42,12 +42,11 @@ export default function DiscordTextGenerator() {
     const selectedText = range.toString();
     if (!selectedText) return;
 
-    // Create a span element with ANSI class and inline color
     const span = document.createElement("span");
     span.className = ansiClass;
     if (ansiClass.startsWith("ansi-1")) {
       span.style.fontWeight = "bold";
-    } else if (ansiClass.startsWith("ansi-4")) {
+    } else if (ansiClass == "ansi-4") {
       span.style.textDecoration = "underline";
     }
     if (ansiClass.startsWith("ansi-3")) {
@@ -100,7 +99,6 @@ export default function DiscordTextGenerator() {
     return text;
   };
 
-  // Copy ANSI text to clipboard
   const copyToClipboard = () => {
     if (!textAreaRef.current) return;
     const ansiText =
@@ -115,15 +113,15 @@ export default function DiscordTextGenerator() {
       style={{
         display: "flex",
         justifyContent: "center",
-        alignItems: "center", // Centers vertically (needs height), // Full viewport height
-        flexDirection: "column", // Stack elements vertically
+        alignItems: "center",
+        flexDirection: "column",
       }}
     >
       <Group
         style={{
           display: "flex",
           justifyContent: "center",
-          alignItems: "center", // Centers vertically (needs height), // Full viewport height
+          alignItems: "center",
           marginTop: "20px",
         }}
       >
@@ -168,26 +166,48 @@ export default function DiscordTextGenerator() {
       </Group>
       <Group className="flex gap-5">
         <h2>BG</h2>
-        {Object.keys(ansiToHex)
-          .filter((key) => key.startsWith("ansi-4"))
-          .map((color) => (
-            <Button
-              key={color}
-              onClick={() => applyColorToSelection(color)}
-              className="button"
-              style={{ backgroundColor: ansiToHex[color] }}
-            >
-              &nbsp;
-            </Button>
-          ))}
+        <Group className="flex gap-10">
+          {Object.keys(ansiToHex)
+            .filter((key) => key.startsWith("ansi-4"))
+            .map((color) => (
+              <Button
+                key={color}
+                onClick={() => applyColorToSelection(color)}
+                className="button"
+                style={{ backgroundColor: ansiToHex[color] }}
+              >
+                &nbsp;
+              </Button>
+            ))}
+        </Group>
       </Group>
       <br />
-      <div className="flex">
+      <div
+        style={{
+          padding: "24px",
+          width: "100%",
+          display: "flex",
+          justifyContent: "center",
+        }}
+      >
         <div
           ref={textAreaRef}
           contentEditable
           suppressContentEditableWarning
-          className="w-[300px] min-h-[100px] p-2 border border-gray-300 focus:outline-none "
+          style={{
+            width: "100%",
+            maxWidth: "800px",
+            minHeight: "100px",
+            maxHeight: "500px",
+            padding: "16px",
+            borderRadius: "8px",
+            boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+            backgroundColor: "white",
+            overflowY: "auto",
+            resize: "both",
+            border: "4px solid black",
+            outline: "none",
+          }}
           dangerouslySetInnerHTML={{ __html: htmlContent }}
         />
       </div>
