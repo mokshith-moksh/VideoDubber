@@ -168,13 +168,15 @@ export default function DiscordTextGenerator() {
         <h2>BG</h2>
         <Group className="flex gap-10">
           {Object.keys(ansiToHex)
-            .filter((key) => key.startsWith("ansi-4"))
+            .filter((key) => key.startsWith("ansi-4") && key != "ansi-4")
             .map((color) => (
               <Button
                 key={color}
                 onClick={() => applyColorToSelection(color)}
                 className="button"
-                style={{ backgroundColor: ansiToHex[color] }}
+                style={{
+                  backgroundColor: ansiToHex[color],
+                }}
               >
                 &nbsp;
               </Button>
