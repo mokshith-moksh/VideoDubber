@@ -5,7 +5,7 @@ import {
   MantineProvider,
   mantineHtmlProps,
 } from "@mantine/core";
-import { HeaderMegaMenu } from "@/components/HeaderMegaMenu";
+import { HeaderSimple } from "@/components/HeaderMegaMenu";
 
 export const metadata = {
   title: "My Mantine app",
@@ -24,7 +24,7 @@ export default function RootLayout({
       </head>
       <body>
         <MantineProvider>
-          <HeaderMegaMenu />
+          <HeaderSimple />
           {children}
         </MantineProvider>
       </body>
