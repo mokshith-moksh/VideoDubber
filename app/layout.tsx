@@ -8,8 +8,8 @@ import {
 import { HeaderSimple } from "@/components/HeaderMegaMenu";
 
 export const metadata = {
-  title: "My Mantine app",
-  description: "I have followed setup instructions carefully",
+  title: "ColorCord",
+  description: "Discord Colored Text Genrator",
 };
 
 export default function RootLayout({

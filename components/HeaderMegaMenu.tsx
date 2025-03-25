@@ -9,8 +9,19 @@ export function HeaderSimple() {
       <Container size="md" className={classes.inner}>
         <h2>ColorCord</h2>
         <Group>
-          <Button>Github</Button>
-          <Button>Discord</Button>
+          <Button
+            onClick={() =>
+              window.open(
+                "https://github.com/mokshith-moksh/VideoDubber",
+                "_blank"
+              )
+            }
+          >
+            Github
+          </Button>
+          <Button onClick={() => window.open("https://discord.com/", "_blank")}>
+            Discord
+          </Button>
         </Group>
       </Container>
     </header>
