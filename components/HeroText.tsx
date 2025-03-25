@@ -17,7 +17,7 @@ export function HeroText() {
           <Text component="span" className={classes.highlight} inherit>
             Colored
           </Text>{" "}
-          Text Genrator
+          Text Generator
         </Title>
 
         <Container p={0} size={600}>
